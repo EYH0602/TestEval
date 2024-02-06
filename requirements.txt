@@ -1,0 +1,9 @@
+fire
+orjson
+tqdm
+funcy
+funcy-chain
+returns
+pathos
+dacite
+types-requests
