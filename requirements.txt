@@ -3,7 +3,8 @@ orjson
 tqdm
 funcy
 funcy-chain
-returns
+returns[compatible-mypy]
 pathos
 dacite
 types-requests
+PyGithub
