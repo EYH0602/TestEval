@@ -40,7 +40,7 @@ class RepoMetadata:
     isArchived: bool  # pylint: disable=invalid-name
     isFork: bool  # pylint: disable=invalid-name
     isMirror: bool  # pylint: disable=invalid-name
-    primaryLanguage: dict  # pylint: disable=invalid-name
+    primaryLanguage: dict | None  # pylint: disable=invalid-name
     pushedAt: str  # pylint: disable=invalid-name
     stargazerCount: int  # pylint: disable=invalid-name
     object: dict
