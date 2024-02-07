@@ -44,6 +44,9 @@ def req_latest_commit(metadata: RepoMetadata, date_str: str = "2020-1-1") -> boo
 
 def req_language(metadata: RepoMetadata, language: str = "python") -> bool:
     """Checks if Github repository has correct language"""
+    if metadata.primaryLanguage is None:
+        return False
+
     primary_lang: str = metadata.primaryLanguage["name"]
     return primary_lang.lower() == language.lower()
 
@@ -204,7 +207,7 @@ def main(
     if checks_list is None:
         checks_list = ["stars", "latest commit"]
     if reqs is None:
-        reqs = ["10", "2020-1-1"]
+        reqs = ["1000", "2020-1-1"]
 
     # if repo_id_list is a file then load lines
     # otherwise it is the id of a specific repo
