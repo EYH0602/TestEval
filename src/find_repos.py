@@ -10,6 +10,7 @@ from funcy_chain import Chain
 import yaml
 from check_repo_stats import check_requirements, CHECK_MAP
 from common import RepoMetadata, get_access_token, get_graphql_data
+from typing import Optional
 
 
 def save_repos_to_file(language: str, repos_list: list[str]) -> None:
@@ -33,12 +34,20 @@ def save_repos_to_file(language: str, repos_list: list[str]) -> None:
             file.write(f"{repo}\n")
 
 
-def load_proj_config(proj_path: str) -> dict:
+def load_proj_config(proj_path: str) -> Optional[dict]:
+    """load a project's configuration to dict
+
+    Args:
+        proj_path (str): path to the oss-fuzz supported project
+
+    Returns:
+        Optional[dict]: configuration, None if key "language" not in it
+    """
     config_path = os.path.join(proj_path, "project.yaml")
     with open(config_path, "r") as fp:
         config: dict[str, str] = yaml.safe_load(fp)
 
-    return config
+    return config if "language" in config else None
 
 
 def to_repo_id(config: dict[str, str]) -> str:
@@ -54,6 +63,7 @@ def get_oss_fuzz_projects(language: str = "python") -> list[str]:
         Chain(os.listdir(projects_dir))
         .map(lambda p: os.path.join(projects_dir, p))
         .map(load_proj_config)
+        .filter(None)
         .filter(lambda config: config["language"] == language)
         .map(to_repo_id)
         .value
@@ -79,7 +89,8 @@ def main(
     checks = [CHECK_MAP[check] for check in checks_list]
     access_token = get_access_token(oauth)
 
-    print(get_oss_fuzz_projects(language.lower()))
+    projects = get_oss_fuzz_projects(language.lower())
+    print(len(projects))
 
 
 if __name__ == "__main__":
