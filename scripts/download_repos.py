@@ -15,18 +15,25 @@ from github.Tag import Tag
 from github.GithubException import GithubException
 from typing import Tuple, Optional
 from returns.result import Result, Success, Failure
-from enum import Enum
+from enum import IntEnum
 import logging
 
-from common import log_or_skip, wrap_repo, time_limit, TimeoutException
+from common import (
+    log_or_skip,
+    wrap_repo,
+    time_limit,
+    TimeoutException,
+    get_access_token,
+)
 
 
-class DownloadErrorCode(Enum):
+class DownloadErrorCode(IntEnum):
     """Status Code for download repo"""
 
     FETCH_REPO_FAILED = 0
     FETCH_ARCHIVE_FAILED = 1
     DOWNLOAD_ARCHIVE_FAILED = 2
+    TARFILE_EXTRACT_FAILED = 3
 
 
 def fetch_repo(
@@ -62,15 +69,17 @@ def fetch_archive(
 
     # try latest tag
     try:
-        latest_tag: Tag = next(iter(repo.get_tags()))
-        return Success((latest_tag, latest_tag.tarball_url))
+        tags = repo.get_tags()
+        if tags.totalCount > 0:
+            latest_tag: Tag = next(iter(tags))
+            return Success((latest_tag, latest_tag.tarball_url))
     except GithubException:
         pass
 
     # try latest commit
     try:
         commit = next(iter(repo.get_commits()))
-        tarball_url = f"https://api.github.com/repos/{repo.name}/tarball/{commit.sha}"
+        tarball_url = f"https://api.github.com/repos/{repo.owner.login}/{repo.name}/tarball/{commit.sha}"
         return Success((commit, tarball_url))
     except GithubException:
         return Failure(DownloadErrorCode.FETCH_ARCHIVE_FAILED)
@@ -109,11 +118,11 @@ def download_repo(
 
 
 def main(
-    input_repo_list_path: str = "data/meta/codesearchnet.txt",
+    input_repo_list_path: str = "data/meta/haskell.txt",
     fetch_timeout: int = 30,
     download_timeout: int = 300,
     delay: Tuple[int, int] | int = -1,
-    oroot: str = "data/repos_tarball/",
+    oroot: str = "data/repos/",
     log: Optional[str] = "download_log.jsonl",
     limits: int = -1,
     oauth: str = "oauth",
@@ -126,7 +135,7 @@ def main(
     # 5k calls per hours if authorized, otherwise, 60 calls or some
     hub: Github
     try:
-        hub = Github(auth=Auth.Token(oauth))
+        hub = Github(auth=Auth.Token(get_access_token(oauth)))
     except GithubException:
         hub = Github()
     # if repo_id_list is a file then load lines
@@ -138,7 +147,7 @@ def main(
         repo_id_list = repo_id_list[:limits]
 
     logging.info(f"Loaded {len(repo_id_list)} repos to be downloaded")
-    failed = [0, 0, 0]
+    failed = [0, 0, 0, 0]
     for repo_id in (pbar := tqdm(repo_id_list)):
         # log repo_id and rate limits
         rate = hub.get_rate_limit()
@@ -150,16 +159,25 @@ def main(
         repo_path = os.path.join(oroot, wrap_repo(repo_id))
         tar_path = repo_path + ".tar.gz"
         match download_repo(hub, repo_id, tar_path, fetch_timeout, download_timeout):
-            case Success((archive, url)):
-                log_or_skip(
-                    log,
-                    repo_id=repo_id,
-                    repo=url,
-                    archive=archive.tarball_url,
-                    download=tar_path,
-                )
-                with tarfile.open(tar_path) as tp:
-                    tp.extractall(repo_path)
+            case Success((_, url)):
+                try:
+                    with tarfile.open(tar_path) as tp:
+                        tp.extractall(repo_path)
+                    log_or_skip(
+                        log,
+                        repo_id=repo_id,
+                        archive=url,
+                        download=tar_path,
+                    )
+                except tarfile.ReadError:
+                    log_or_skip(
+                        log,
+                        repo_id=repo_id,
+                        archive=url,
+                        download=tar_path,
+                        error_code=DownloadErrorCode.TARFILE_EXTRACT_FAILED,
+                    )
+                    failed[DownloadErrorCode.TARFILE_EXTRACT_FAILED] += 1
             case Failure(status):
                 failed[status] += 1
                 log_or_skip(log, repo_id=repo_id, error_code=status)
@@ -169,7 +187,7 @@ def main(
             time.sleep(sleep_time)
 
     if sum(failed):
-        failed_types = ["repo", "archive", "download"]
+        failed_types = ["repo", "archive", "download", "extract"]
         failed_dict = {key: val for key, val in zip(failed_types, failed) if val != 0}
         logging.warning(f"Failed: {failed_dict}")
     logging.info("Done!")

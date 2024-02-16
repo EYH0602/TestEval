@@ -59,13 +59,14 @@ def check_requirements(
     requirements: list[Callable[[RepoMetadata, str], bool]],
     reqs: list[str],
     access_token: str,
-    metadata: Optional[dict] = None,
+    repo_data: Optional[RepoMetadata] = None,
 ) -> bool:
     """Checks if Github repository meets requirements
 
     Args:
         repo (str): Github repository in repo_owner/repo_name format
-        requirements (list[callable]): List of requirement callables to check if repo meets requirement
+        requirements (list[callable]): List of requirement callables to check
+            if repo meets requirement
         reqs (list[str]): List of values to check against for each callable
             - each req will be called with the callable of the same index in requirements
 
@@ -120,21 +121,21 @@ def check_requirements(
     #       }
     #   }
     # }
-    if metadata is None:  # Query if metadata is not provided
+    if repo_data is None:  # Query if metadata is not provided
         metadata = get_graphql_data(
             gql_format % (repo_query[1], repo_query[0]), access_token
         )
-    if "errors" in metadata:
-        logging.error(f"Fetching repo metadata error: {metadata['errors']}")
-        return False
-
-    # print(f"{repo} metadata: {metadata}")
-    data: dict = metadata["data"]["repository"]
-    if data is None:
-        logging.warning(f"Response for repo {repo} is None")
-        return False
-
-    repo_data: RepoMetadata = RepoMetadata.from_dict(data)
+        if metadata is None:
+            logging.error("Fetching repo metadata error: None response")
+            return False
+        if "errors" in metadata:
+            logging.error(f"Fetching repo metadata error: {metadata['errors']}")
+            return False
+        data: dict = metadata["data"]["repository"]
+        if data is None:
+            logging.warning(f"Response for repo {repo} is None")
+            return False
+        repo_data = RepoMetadata.from_dict(data)
 
     # If repo is archived, mirror, or fork, automatic fail
     if repo_data.isArchived:
@@ -158,7 +159,7 @@ def check_requirements(
 
     # Save metadata to file to avoid repeat queries for repos that pass checks
     # print("Saving metadata")
-    for key, value in data.items():
+    for key, value in repo_data.__dict__.items():
         meta_key_path = f"data/meta/{key}.json"
         if not os.path.exists(meta_key_path):
             os.system(f"touch {meta_key_path}")
