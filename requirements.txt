@@ -4,7 +4,7 @@ funcy==2.0
 funcy-chain==0.2.0
 returns[compatible-mypy]==0.22.0
 pathos
-dacite==0.0.13
+dacite
 types-requests>=2.31.0
 PyGithub==2.2.0
 tree-sitter==0.20.1

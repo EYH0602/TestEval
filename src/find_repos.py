@@ -51,7 +51,7 @@ def load_proj_config(proj_path: str) -> Optional[dict]:
 
 
 def to_repo_id(config: dict[str, str]) -> str:
-    url = config["main_repo"]
+    url = config["main_repo"].strip("/")
     return "/".join(url.split("/")[-2:])
 
 
@@ -75,22 +75,9 @@ def get_oss_fuzz_projects(language: str = "python") -> list[str]:
 # Pass checks_list and reqs with this template: --checks_list='<list>' --reqs='<list>'
 # Ex. --reqs='["0", "2020-1-1"]'
 # If checking Rust fuzz path, put null in place of where the req should be in the reqs list
-def main(
-    language: str = "python",
-    checks_list: list[str] | None = None,
-    reqs: list[str] | None = None,  # Year format should be <year>-<month>-<day>
-    oauth: str = "oauth",
-):
-    if checks_list is None:
-        checks_list = ["stars", "latest commit"]
-    if reqs is None:
-        reqs = ["1000", "2020-1-1"]
-    # Set up requirement callables and reqs
-    checks = [CHECK_MAP[check] for check in checks_list]
-    access_token = get_access_token(oauth)
-
-    projects = get_oss_fuzz_projects(language.lower())
-    print(len(projects))
+def main(language: str = "python"):
+    oss_fuzz_projects = get_oss_fuzz_projects(language.lower())
+    logging.info(f"Find {len(oss_fuzz_projects)} projects in OSS-Fuzz projects")
 
 
 if __name__ == "__main__":
