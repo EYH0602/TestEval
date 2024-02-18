@@ -162,3 +162,4 @@ cython_debug/
 oauth
 data/meta/*.json
 oss-fuzz/*
+data/repos/*

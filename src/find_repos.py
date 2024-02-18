@@ -75,9 +75,11 @@ def get_oss_fuzz_projects(language: str = "python") -> list[str]:
 # Pass checks_list and reqs with this template: --checks_list='<list>' --reqs='<list>'
 # Ex. --reqs='["0", "2020-1-1"]'
 # If checking Rust fuzz path, put null in place of where the req should be in the reqs list
-def main(language: str = "python"):
+def main(language: str = "python", output_file: str = "output.txt"):
     oss_fuzz_projects = get_oss_fuzz_projects(language.lower())
     logging.info(f"Find {len(oss_fuzz_projects)} projects in OSS-Fuzz projects")
+    with open(output_file, "w") as fp:
+        fp.write("\n".join(oss_fuzz_projects))
 
 
 if __name__ == "__main__":
