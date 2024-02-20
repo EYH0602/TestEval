@@ -1,4 +1,4 @@
-"""Script to download repos from GitHub"""
+"""Script to collect dataset wit static analysis"""
 
 import os
 import fire
