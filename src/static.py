@@ -3,7 +3,7 @@
 import os
 import fire
 from tqdm import tqdm
-import re
+import json
 import logging
 import ast
 from common import wrap_repo
@@ -118,12 +118,17 @@ def is_properity_based(func: ast.FunctionDef) -> bool:
 
 
 def main(
-    input_repo_list_path: str = "data/meta/oss_fuzz_python_filtered.txt",
+    input_repo_list_path: str = "data/meta/oss_fuzz_python_filtered.jsonl",
     root: str = "data/repos/",
     output_csv_file: str = "output.csv",
 ):
     with open(input_repo_list_path, "r") as fp:
-        repo_id_list = [line.strip() for line in fp.readlines()]
+        repo_id_list = (
+            Chain(fp.read().splitlines())
+            .map(json.loads)
+            .map(lambda x: x["repo_id"])
+            .value
+        )
 
     root = os.path.abspath(root)
     rows = []
@@ -144,7 +149,6 @@ def main(
             "#unit": n_tests - n_property_based,
             "#proptery_based": n_property_based,
         }
-        logging.info(csv_row)
         rows.append(csv_row)
 
     with open(output_csv_file, "w") as csvfile:
