@@ -18,7 +18,7 @@ from returns.result import Result, Success, Failure
 from enum import IntEnum
 import logging
 
-from common import (
+from src.common import (
     log_or_skip,
     wrap_repo,
     time_limit,

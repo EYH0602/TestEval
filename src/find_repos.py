@@ -8,8 +8,8 @@ import os
 import logging
 from funcy_chain import Chain
 import yaml
-from check_repo_stats import check_requirements, CHECK_MAP
-from common import RepoMetadata, get_access_token, get_graphql_data
+from src.check_repo_stats import check_requirements, CHECK_MAP
+from src.common import RepoMetadata, get_access_token, get_graphql_data
 from typing import Optional
 import json
 from funcy import lfilter

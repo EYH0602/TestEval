@@ -21,7 +21,7 @@ import fire
 import json
 import logging
 from funcy_chain import Chain
-from common import get_graphql_data, RepoMetadata, get_access_token
+from src.common import get_graphql_data, RepoMetadata, get_access_token
 
 
 #### Requirement Callables ####
