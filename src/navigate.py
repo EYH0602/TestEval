@@ -1,9 +1,6 @@
 """util functions to navigate in python repo"""
 
-import os
-import sys
 import ast
-import jedi
 from typing import Optional, Callable, List, Union
 
 
