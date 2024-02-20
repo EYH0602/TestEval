@@ -6,8 +6,8 @@ from tqdm import tqdm
 import json
 import logging
 import ast
-from common import wrap_repo
-from navigate import ModuleNavigator
+from src.common import wrap_repo
+from src.navigate import ModuleNavigator
 from funcy import group_by, lmap, lfilter
 from pathlib import Path
 from funcy_chain import Chain
@@ -108,13 +108,30 @@ def merge_dict(
 
 
 def is_property_based(func: ast.FunctionDef) -> bool:
-    for decorator in func.decorator_list:
-        if isinstance(decorator, ast.Name) and decorator.id in (
-            "given",
-            "hypothesis.given",
-        ):
-            return True
-    return False
+    class HypothesisGivenDecoratorFinder(ast.NodeVisitor):
+        def __init__(self):
+            super().__init__()
+            self.found_given_decorator = False
+
+        def visit_FunctionDef(self, node):
+            if not self.found_given_decorator:
+                for decorator in node.decorator_list:
+                    # Check if the decorator is a call to 'given'
+                    if isinstance(decorator, ast.Call):
+                        if (  # @given is an ast.Name
+                            isinstance(decorator.func, ast.Name)
+                            and decorator.func.id == "given"
+                        ) or (  # @given() is an ast.Attribute
+                            isinstance(decorator.func, ast.Attribute)
+                            and decorator.func.attr == "given"
+                        ):
+                            self.found_given_decorator = True
+                            break
+            self.generic_visit(node)
+
+    finder = HypothesisGivenDecoratorFinder()
+    finder.visit(func)
+    return finder.found_given_decorator
 
 
 def main(
