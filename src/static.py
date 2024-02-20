@@ -8,7 +8,7 @@ import logging
 import ast
 from common import wrap_repo
 from navigate import ModuleNavigator
-from funcy import group_by, lmap
+from funcy import group_by, lmap, lfilter
 from pathlib import Path
 from funcy_chain import Chain
 import csv
@@ -107,6 +107,16 @@ def merge_dict(
     return {True: d1[True] + d2[True], False: d1[False] + d2[False]}
 
 
+def is_properity_based(func: ast.FunctionDef) -> bool:
+    for decorator in func.decorator_list:
+        if isinstance(decorator, ast.Name) and decorator.id in (
+            "given",
+            "hypothesis.given",
+        ):
+            return True
+    return False
+
+
 def main(
     input_repo_list_path: str = "data/meta/oss_fuzz_python_filtered.txt",
     root: str = "data/repos/",
@@ -124,12 +134,15 @@ def main(
         func_ds = lmap(collect_funcs, navs)
         func_dict = reduce(merge_dict, func_ds)
 
+        n_tests = len(func_dict[True])
+        n_property_based = len(lfilter(is_properity_based, func_dict[True]))
         csv_row = {
             "repo_id": repo_id,
             "#files": len(all_files),
             "#lines": sum(m.total_lines for m in navs),
             "#funcs": len(func_dict[False]),
-            "#tests": len(func_dict[True]),
+            "#unit": n_tests - n_property_based,
+            "#proptery_based": n_property_based,
         }
         logging.info(csv_row)
         rows.append(csv_row)
