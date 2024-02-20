@@ -131,7 +131,7 @@ def main(
         repo_id = repo["repo_id"]
         repo_root = os.path.join(root, wrap_repo(repo_id))
         all_files = collect_py_files(repo_root)
-        navs = lmap(ModuleNavigator, all_files)
+        navs = lmap(ModuleNavigator.build, all_files)
         func_ds = lmap(collect_funcs, navs)
         func_dict = reduce(merge_dict, func_ds)
 

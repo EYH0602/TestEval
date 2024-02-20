@@ -12,9 +12,17 @@ class ModuleNavigator:
 
     def __init__(self, path: str):
         self.path = path
-        with open(path, "r") as fp:
+        with open(path, "r", errors="replace") as fp:
             self.ast = ast.parse(fp.read())
         self.nodes, self.parents = flatten(self.ast)
+
+    @staticmethod
+    def build(path: str):
+        try:
+            nav = ModuleNavigator(path)
+            return nav
+        except SyntaxError:
+            return None
 
     def find_all(self, ntype: Union[type, Callable], root: Optional[ast.AST] = None):
         if root is None:
