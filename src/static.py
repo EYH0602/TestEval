@@ -107,7 +107,7 @@ def merge_dict(
     return {True: d1[True] + d2[True], False: d1[False] + d2[False]}
 
 
-def is_properity_based(func: ast.FunctionDef) -> bool:
+def is_property_based(func: ast.FunctionDef) -> bool:
     for decorator in func.decorator_list:
         if isinstance(decorator, ast.Name) and decorator.id in (
             "given",
@@ -131,12 +131,12 @@ def main(
         repo_id = repo["repo_id"]
         repo_root = os.path.join(root, wrap_repo(repo_id))
         all_files = collect_py_files(repo_root)
-        navs = lmap(ModuleNavigator.build, all_files)
+        navs = lfilter(None, lmap(ModuleNavigator.build, all_files))
         func_ds = lmap(collect_funcs, navs)
         func_dict = reduce(merge_dict, func_ds)
 
         n_tests = len(func_dict[True])
-        n_property_based = len(lfilter(is_properity_based, func_dict[True]))
+        n_property_based = len(lfilter(is_property_based, func_dict[True]))
         csv_row = {
             "repo_id": repo_id,
             "#files": len(all_files),
