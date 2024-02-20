@@ -123,16 +123,12 @@ def main(
     output_csv_file: str = "output.csv",
 ):
     with open(input_repo_list_path, "r") as fp:
-        repo_id_list = (
-            Chain(fp.read().splitlines())
-            .map(json.loads)
-            .map(lambda x: x["repo_id"])
-            .value
-        )
+        repo_list = Chain(fp.read().splitlines()).map(json.loads).value
 
     root = os.path.abspath(root)
     rows = []
-    for repo_id in tqdm(repo_id_list[:1]):
+    for repo in tqdm(repo_list):
+        repo_id = repo["repo_id"]
         repo_root = os.path.join(root, wrap_repo(repo_id))
         all_files = collect_py_files(repo_root)
         navs = lmap(ModuleNavigator, all_files)
@@ -148,6 +144,7 @@ def main(
             "#funcs": len(func_dict[False]),
             "#unit": n_tests - n_property_based,
             "#proptery_based": n_property_based,
+            "#fuzz_target": repo["#fuzz_target"],
         }
         rows.append(csv_row)
 
