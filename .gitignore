@@ -163,3 +163,5 @@ oauth
 data/meta/*.json
 oss-fuzz/*
 data/repos/*
+*.tar.gz
+*.csv
