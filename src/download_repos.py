@@ -18,7 +18,7 @@ from returns.result import Result, Success, Failure
 from enum import IntEnum
 import logging
 
-from common import (
+from src.common import (
     log_or_skip,
     wrap_repo,
     time_limit,
@@ -118,7 +118,7 @@ def download_repo(
 
 
 def main(
-    input_repo_list_path: str = "data/meta/haskell.txt",
+    input_repo_list_path: str = "data/meta/oss_fuzz_python_filtered.txt",
     fetch_timeout: int = 30,
     download_timeout: int = 300,
     delay: Tuple[int, int] | int = -1,

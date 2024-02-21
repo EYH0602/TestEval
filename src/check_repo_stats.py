@@ -21,7 +21,7 @@ import fire
 import json
 import logging
 from funcy_chain import Chain
-from common import get_graphql_data, RepoMetadata, get_access_token
+from src.common import get_graphql_data, RepoMetadata, get_access_token
 
 
 #### Requirement Callables ####
@@ -187,8 +187,8 @@ CHECK_MAP: dict[str, Callable[[RepoMetadata, str], bool]] = {
 def main(
     reqs: list[str] | None = None,
     checks_list: list[str] | None = None,
-    input_repo_list_path: str = "data/meta/codesearchnet.txt",
-    output_filter_result: str = "data/meta/test_eval.txt",
+    input_repo_list_path: str = "data/meta/oss_fuzz_python.jsonl",
+    output_filter_result: str = "data/meta/oss_fuzz_python_filtered.jsonl",
     token: str = "oauth",
 ):
     """Pass checks_list and reqs with this : --checks_list='<list>' --reqs='<list>'
@@ -220,7 +220,9 @@ def main(
     checks = [CHECK_MAP[check] for check in checks_list]
     test_eval_repos = (
         Chain(repo_id_list)
-        .filter(lambda repo: check_requirements(repo, checks, reqs, access_token))
+        .map(json.loads)
+        .filter(lambda r: check_requirements(r["repo_id"], checks, reqs, access_token))
+        .map(json.dumps)
         .value
     )
     with open(output_filter_result, "w") as fp:
