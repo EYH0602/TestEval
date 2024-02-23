@@ -21,7 +21,7 @@ And put your GitHub Personal access tokens in `./oauth`.
 ### Get Repo List
 
 ```sh
-python3 src/find_repos.py -o data/meta/oss_fuzz_python.josnl # find Python repos from OSS-Fuzz
+python3 src/find_repos.py -o data/meta/oss_fuzz_python.jsonl # find Python repos from OSS-Fuzz
 python3 src/check_repo_stats.py -i data/meta/oss_fuzz_python.jsonl -o oss_fuzz_python_filtered.jsonl
 ```
 
@@ -37,3 +37,5 @@ python3 src/download_repos.py -i data/meta/oss_fuzz_python_filtered.json --oroot
 ```sh
 python3 src/static.py -i data/meta/oss_fuzz_python_filtered.json -o output.csv
 ```
+
+We have a pre-build dataset on [this google drive](https://drive.google.com/file/d/1YkyWj5izotBzqkm60cHk2iaFFYYwAzH5/view?usp=sharing).
