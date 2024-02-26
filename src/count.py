@@ -1,7 +1,9 @@
 import requests
 import time
-import os 
+import os
 import sys
+from typing import Optional
+import fire  
 
 # Constants
 
@@ -22,6 +24,7 @@ def safe_request(url, headers, max_retries=MAX_RETRIES, timeout=10):
                 sleep_time = max(reset_time - int(time.time()), 1)
                 print(f"Rate limit exceeded. Waiting for {sleep_time} seconds.")
                 time.sleep(sleep_time)
+                 # Failed to fetch data after retries
             else:
                 print(f"Request failed with status code {response.status_code}. Attempt {attempt + 1} of {max_retries}.")
                 time.sleep(2 ** attempt)  
@@ -29,7 +32,6 @@ def safe_request(url, headers, max_retries=MAX_RETRIES, timeout=10):
             print(f"Request exception: {e}. Attempt {attempt + 1} of {max_retries}.")
              # Exponential backoff
             time.sleep(2 ** attempt) 
-             # Failed to fetch data after retries
     return None 
 
 def read_repos(file_path):
@@ -37,7 +39,7 @@ def read_repos(file_path):
         repos = [line.strip() for line in file.readlines()]
     return repos
 
-def get_commits_count(repo):
+def get_commits_count(repo) -> Optional[int]:
     start_date = "2023-01-01T00:00:00Z"
     end_date = "2024-12-31T23:59:59Z"
     commits_url = f"{GITHUB_API}/repos/{repo}/commits?since={start_date}&until={end_date}&per_page=1"
@@ -47,15 +49,14 @@ def get_commits_count(repo):
             last_page_url = response.links['last']['url']
             last_page_number = int(last_page_url.split('=')[-1])
             return last_page_number
-        elif response.json():  
+        elif response.json():
             # Check if there's at least one commit in the specified range
             return 1
             # No commits in the specified date range
         return 0  
-    return "Error"
+    return None
 
-
-def get_bugs_count(repo):
+def get_bugs_count(repo) -> Optional[int]:
     bug_count = 0
     page = 1
     while True:
@@ -66,30 +67,21 @@ def get_bugs_count(repo):
             if not issues:
                 break
             for issue in issues:
-                # Get the date part of the timestamp
                 created_at = issue['created_at'][:10]  
                 if "2023-01-01" <= created_at <= "2024-12-31":
                     bug_count += 1
             page += 1
         else:
-            return "Error"
+            return None
     return bug_count
-
-
 
 def write_output(repos_info, output_file):
     with open(output_file, 'w') as file:
         for repo, commits_count, bugs_count in repos_info:
             file.write(f"{repo.replace('/', ',')} , {commits_count} , {bugs_count}\n")
 
-def main():
-    if len(sys.argv) < 2:
-        print("Usage: python script.py input_file_path")
-        sys.exit(1)
-
-    file_path = sys.argv[1]
-    output_file = 'output4.csv'  
-    repos = read_repos(file_path)
+def main(input_file_path, output_file_path):
+    repos = read_repos(input_file_path)
     repos_info = []
 
     for repo in repos:
@@ -98,8 +90,8 @@ def main():
         bugs_count = get_bugs_count(repo)
         repos_info.append((repo, commits_count, bugs_count))
     
-    write_output(repos_info, output_file)
-    print("Finished. Output written to", output_file)
+    write_output(repos_info, output_file_path)
+    print("Finished. Output written to", output_file_path)
 
 if __name__ == "__main__":
-    main()
+    fire.Fire(main)
