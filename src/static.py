@@ -160,7 +160,7 @@ def main(
             "#lines": sum(m.total_lines for m in navs),
             "#funcs": len(func_dict[False]),
             "#unit": n_tests - n_property_based,
-            "#proptery_based": n_property_based,
+            "#property_based": n_property_based,
             "#fuzz_target": repo["#fuzz_target"],
         }
         rows.append(csv_row)
