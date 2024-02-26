@@ -55,7 +55,6 @@ def get_commits_count(repo):
     return "Error"
 
 
-
 def get_bugs_count(repo):
     bug_count = 0
     page = 1
