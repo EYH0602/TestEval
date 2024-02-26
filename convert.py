@@ -1,7 +1,7 @@
 import csv
 
-input_filename = 'output2.csv'
-output_filename = 'merged_output.csv'
+input_filename = 'output3.csv'
+output_filename = 'converted_analysis.csv'
 
 with open(input_filename, 'r', newline='') as infile, open(output_filename, 'w', newline='') as outfile:
     reader = csv.reader(infile)

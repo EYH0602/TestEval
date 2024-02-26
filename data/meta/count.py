@@ -4,6 +4,7 @@ import os
 import sys
 
 # Constants
+
 GITHUB_API = "https://api.github.com"
 TOKEN = os.getenv('GITHUB_TOKEN')
 HEADERS = {'Authorization': f'token {TOKEN}'}
@@ -87,7 +88,7 @@ def main():
         sys.exit(1)
 
     file_path = sys.argv[1]
-    output_file = 'output2.csv'  
+    output_file = 'output4.csv'  
     repos = read_repos(file_path)
     repos_info = []
 
