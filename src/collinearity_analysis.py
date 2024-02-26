@@ -35,7 +35,7 @@ def collinearity_analysis(
         correlation_proptery_based_funcs,
         correlation_fuzz_target_funcs,
     ]
-    predictors = ["#unit", "#proptery_based", "#fuzz_target"]
+    predictors = ["#unit", "#property_based", "#fuzz_target"]
 
     print(
         f"Correlation Coefficient of funcs number and unit test functions number : {correlation_unit_funcs:.4f}"
@@ -71,7 +71,7 @@ def collinearity_analysis(
     plt.savefig(f"./{output_dir}/{barchart_name}.pdf", dpi=500, bbox_inches="tight")
     plt.show()
 
-    columns_of_interest = ["#funcs", "#unit", "#proptery_based", "#fuzz_target"]
+    columns_of_interest = ["#funcs", "#unit", "#property_based", "#fuzz_target"]
     correlation_matrix = dataset[columns_of_interest].corr()
 
     sns.set_theme(style="whitegrid")
