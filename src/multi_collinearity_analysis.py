@@ -14,9 +14,9 @@ import statsmodels.api as sm
 def build_multilinear_regression_model(
     dataset_path: str = "./data/static_analysis_data/dataset.csv",
     output_dir: str = "images",
-    choice: int = 1,
+    choice: int = 7
 ):
-
+    name = ""
     dataset = pd.read_csv(dataset_path)
 
     files_number = dataset["#files"]
@@ -25,38 +25,60 @@ def build_multilinear_regression_model(
     unit_test_funcs_number = dataset["#unit"]
     proptery_based_test_funcs_number = dataset["#proptery_based"]
     fuzz_target_number = dataset["#fuzz_target"]
+    commits_number = dataset["#commits"]
+    bug_related_issues_number = dataset["#bugs"]
     if choice == 1:
         X = pd.concat(
-            [files_number, lines_number, funcs_number, unit_test_funcs_number], axis=1
+            [files_number, lines_number, funcs_number,commits_number, unit_test_funcs_number], axis=1
         )
+        name = "unit_testing"
     elif choice == 2:
         X = pd.concat(
             [
                 files_number,
                 lines_number,
                 funcs_number,
+                commits_number,
                 proptery_based_test_funcs_number,
             ],
             axis=1,
         )
+        name = "property_based_testing"
     elif choice == 3:
         X = pd.concat(
-            [files_number, lines_number, funcs_number, fuzz_target_number], axis=1
+            [files_number, lines_number, funcs_number,commits_number, fuzz_target_number], axis=1
         )
+        name = "fuzz_testing"    
     elif choice == 4:
+        X = pd.concat(
+            [files_number, lines_number, funcs_number,commits_number, unit_test_funcs_number, proptery_based_test_funcs_number], axis=1
+        )
+        name = "unit_property_testing"  
+    elif choice == 5:
+        X = pd.concat(
+            [files_number, lines_number, funcs_number,commits_number, unit_test_funcs_number, fuzz_target_number], axis=1
+        )
+        name = "unit_fuzz_testing"  
+    elif choice == 6:
+        X = pd.concat(
+            [files_number, lines_number, funcs_number,commits_number, proptery_based_test_funcs_number, fuzz_target_number], axis=1
+        )
+        name = "property_fuzz_testing"       
+    elif choice == 7:
         X = pd.concat(
             [
                 files_number,
                 lines_number,
                 funcs_number,
+                commits_number,
                 unit_test_funcs_number,
                 proptery_based_test_funcs_number,
                 fuzz_target_number,
             ],
             axis=1,
         )
-    # X = dataset[["#files", "#lines", "#funcs", "#unit"]]
-    y = fuzz_target_number
+        name = "all_testing_fram"
+    y = bug_related_issues_number
 
     X = sm.add_constant(X)
 
@@ -80,7 +102,7 @@ def build_multilinear_regression_model(
     plt.title("Normal Q-Q")
 
     plt.tight_layout()
-    plt.savefig(f"{output_dir}/residual_analysis.png")
+    plt.savefig(f"{output_dir}/{name}_residual_analysis.png",dpi=500)
     plt.show()
 
 
